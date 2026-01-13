@@ -3,6 +3,17 @@ let selectedModel = null;
 
 const NEXT_DELAY_MS = 600;
 
+// Model display names (VISIBLE to participants)
+const MODEL_NAMES = {
+  A: "Arya AI",
+  B: "Grok",
+  C: "GPT",
+  D: "Claude"
+};
+
+// ORIGINAL question order (political → general)
+const ORDERED_DATA = [...window.LLM_DATA];
+
 const promptEl = document.getElementById("prompt");
 const generateBtn = document.getElementById("generateBtn");
 const loadingEl = document.getElementById("loading");
@@ -15,7 +26,7 @@ function timestamp() {
 }
 
 function loadRound() {
-  const q = window.LLM_DATA[round];
+  const q = ORDERED_DATA[round];
   promptEl.textContent = q.prompt;
 
   // Reset UI
@@ -25,15 +36,15 @@ function loadRound() {
   instructionEl.classList.add("hidden");
 
   selectedModel = null;
-
-  // Re-enable Generate button
   generateBtn.disabled = false;
 
-  // Load answer text
+  // Populate answers and model names
   document.querySelectorAll(".answer-wrapper").forEach(wrapper => {
     const model = wrapper.dataset.model;
     const card = wrapper.querySelector(".answer-card");
+    const label = wrapper.querySelector("[data-model-label]");
 
+    label.textContent = MODEL_NAMES[model];
     card.textContent = q.answers[model];
     card.classList.remove("selected");
   });
@@ -42,6 +53,7 @@ function loadRound() {
     {
       type: "round_loaded",
       round: round + 1,
+      questionIndex: round + 1,
       timestamp: timestamp()
     },
     "*"
@@ -54,6 +66,7 @@ function sendChoiceToQualtrics(model) {
       type: "choiceMade",
       fieldName: `choice_round_${round + 1}`,
       value: model,
+      modelName: MODEL_NAMES[model],
       timestamp: timestamp()
     },
     "*"
@@ -61,7 +74,6 @@ function sendChoiceToQualtrics(model) {
 }
 
 generateBtn.addEventListener("click", () => {
-  // Disable Generate immediately
   generateBtn.disabled = true;
 
   window.parent.postMessage(
@@ -102,10 +114,8 @@ document.querySelectorAll(".answer-wrapper").forEach(wrapper => {
       .classList.add("selected");
 
     selectedModel = model;
-
     sendChoiceToQualtrics(selectedModel);
 
-    // Delay before showing Next button
     setTimeout(() => {
       nextBtn.classList.remove("hidden");
     }, NEXT_DELAY_MS);
@@ -118,6 +128,7 @@ nextBtn.addEventListener("click", () => {
       type: "next_clicked",
       round: round + 1,
       selectedModel,
+      modelName: MODEL_NAMES[selectedModel],
       timestamp: timestamp()
     },
     "*"
@@ -125,7 +136,7 @@ nextBtn.addEventListener("click", () => {
 
   round++;
 
-  if (round >= window.LLM_DATA.length) {
+  if (round >= ORDERED_DATA.length) {
     window.parent.postMessage(
       {
         type: "finishedAllRounds",
@@ -143,4 +154,5 @@ nextBtn.addEventListener("click", () => {
 });
 
 // Initialize
+console.log("Condition: NAMED MODELS, POLITICAL FIRST");
 loadRound();
