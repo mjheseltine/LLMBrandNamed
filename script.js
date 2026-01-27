@@ -13,9 +13,7 @@ const MODEL_NAMES = {
 };
 
 // ---------- QUESTION ORDER ----------
-// data.js is already: Political (0–3) → General (4–7)
-// Regular condition uses this order unchanged
-
+// data.js is Political → General already
 const ORDERED_DATA = [...window.LLM_DATA];
 
 // ---------- DOM REFERENCES ----------
@@ -37,7 +35,7 @@ function loadRound() {
   const q = ORDERED_DATA[round];
   promptEl.textContent = q.prompt;
 
-  // Reset UI state
+  // Reset UI
   answersEl.classList.add("hidden");
   loadingEl.classList.add("hidden");
   nextBtn.classList.add("hidden");
@@ -46,11 +44,11 @@ function loadRound() {
   selectedModel = null;
   generateBtn.disabled = false;
 
-  // Populate answers + model names
+  // Populate answers + labels
   document.querySelectorAll(".answer-wrapper").forEach(wrapper => {
     const model = wrapper.dataset.model;
     const card = wrapper.querySelector(".answer-card");
-    const label = wrapper.querySelector("[data-model-label]");
+    const label = wrapper.querySelector(".model-label"); // ✅ FIX
 
     label.textContent = MODEL_NAMES[model];
     card.textContent = q.answers[model];
@@ -87,31 +85,12 @@ function sendChoiceToQualtrics(model) {
 
 generateBtn.addEventListener("click", () => {
   generateBtn.disabled = true;
-
-  window.parent.postMessage(
-    {
-      type: "generate_clicked",
-      round: round + 1,
-      timestamp: timestamp()
-    },
-    "*"
-  );
-
   loadingEl.classList.remove("hidden");
 
   setTimeout(() => {
     loadingEl.classList.add("hidden");
     answersEl.classList.remove("hidden");
     instructionEl.classList.remove("hidden");
-
-    window.parent.postMessage(
-      {
-        type: "responses_shown",
-        round: round + 1,
-        timestamp: timestamp()
-      },
-      "*"
-    );
   }, 700);
 });
 
@@ -124,10 +103,9 @@ document.querySelectorAll(".answer-wrapper").forEach(wrapper => {
     document.querySelectorAll(".answer-card")
       .forEach(c => c.classList.remove("selected"));
 
-    wrapper.querySelector(".answer-card")
-      .classList.add("selected");
-
+    wrapper.querySelector(".answer-card").classList.add("selected");
     selectedModel = model;
+
     sendChoiceToQualtrics(selectedModel);
 
     setTimeout(() => {
@@ -155,10 +133,7 @@ nextBtn.addEventListener("click", () => {
 
   if (round >= ORDERED_DATA.length) {
     window.parent.postMessage(
-      {
-        type: "finishedAllRounds",
-        timestamp: timestamp()
-      },
+      { type: "finishedAllRounds", timestamp: timestamp() },
       "*"
     );
 
