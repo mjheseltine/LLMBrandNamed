@@ -3,7 +3,9 @@ let selectedModel = null;
 
 const NEXT_DELAY_MS = 600;
 
-// ---------- MODEL DISPLAY NAMES (VISIBLE) ----------
+// ---------- MODEL DEFINITIONS ----------
+
+const MODEL_IDS = ["A", "B", "C", "D"];
 
 const MODEL_NAMES = {
   A: "Gab AI",
@@ -13,7 +15,7 @@ const MODEL_NAMES = {
 };
 
 // ---------- QUESTION ORDER ----------
-// data.js is Political → General already
+// data.js is Political → General
 const ORDERED_DATA = [...window.LLM_DATA];
 
 // ---------- DOM REFERENCES ----------
@@ -35,7 +37,6 @@ function loadRound() {
   const q = ORDERED_DATA[round];
   promptEl.textContent = q.prompt;
 
-  // Reset UI
   answersEl.classList.add("hidden");
   loadingEl.classList.add("hidden");
   nextBtn.classList.add("hidden");
@@ -44,14 +45,19 @@ function loadRound() {
   selectedModel = null;
   generateBtn.disabled = false;
 
-  // Populate answers + labels
-  document.querySelectorAll(".answer-wrapper").forEach(wrapper => {
-    const model = wrapper.dataset.model;
-    const card = wrapper.querySelector(".answer-card");
-    const label = wrapper.querySelector(".model-label"); // ✅ FIX
+  const wrappers = document.querySelectorAll(".answer-wrapper");
 
-    label.textContent = MODEL_NAMES[model];
-    card.textContent = q.answers[model];
+  wrappers.forEach((wrapper, i) => {
+    const modelId = MODEL_IDS[i]; // ← CRITICAL FIX
+    const label = wrapper.querySelector(".model-label");
+    const card = wrapper.querySelector(".answer-card");
+
+    // Assign model identity
+    wrapper.dataset.model = modelId;
+
+    // Populate UI
+    label.textContent = MODEL_NAMES[modelId];
+    card.textContent = q.answers[modelId];
     card.classList.remove("selected");
   });
 
@@ -81,7 +87,7 @@ function sendChoiceToQualtrics(model) {
   );
 }
 
-// ---------- GENERATE RESPONSES ----------
+// ---------- GENERATE ----------
 
 generateBtn.addEventListener("click", () => {
   generateBtn.disabled = true;
@@ -98,13 +104,11 @@ generateBtn.addEventListener("click", () => {
 
 document.querySelectorAll(".answer-wrapper").forEach(wrapper => {
   wrapper.addEventListener("click", () => {
-    const model = wrapper.dataset.model;
-
     document.querySelectorAll(".answer-card")
       .forEach(c => c.classList.remove("selected"));
 
     wrapper.querySelector(".answer-card").classList.add("selected");
-    selectedModel = model;
+    selectedModel = wrapper.dataset.model;
 
     sendChoiceToQualtrics(selectedModel);
 
@@ -115,7 +119,7 @@ document.querySelectorAll(".answer-wrapper").forEach(wrapper => {
   });
 });
 
-// ---------- NEXT QUESTION ----------
+// ---------- NEXT ----------
 
 nextBtn.addEventListener("click", () => {
   window.parent.postMessage(
