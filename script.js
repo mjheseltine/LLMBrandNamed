@@ -3,7 +3,8 @@ let selectedModel = null;
 
 const NEXT_DELAY_MS = 600;
 
-// Model display names (VISIBLE to participants)
+// ---------- MODEL DISPLAY NAMES (VISIBLE) ----------
+
 const MODEL_NAMES = {
   A: "Gab AI",
   B: "Grok",
@@ -11,8 +12,13 @@ const MODEL_NAMES = {
   D: "Claude"
 };
 
-// ORIGINAL question order (political → general)
+// ---------- QUESTION ORDER ----------
+// data.js is already: Political (0–3) → General (4–7)
+// Regular condition uses this order unchanged
+
 const ORDERED_DATA = [...window.LLM_DATA];
+
+// ---------- DOM REFERENCES ----------
 
 const promptEl = document.getElementById("prompt");
 const generateBtn = document.getElementById("generateBtn");
@@ -21,15 +27,17 @@ const answersEl = document.getElementById("answers");
 const nextBtn = document.getElementById("nextBtn");
 const instructionEl = document.getElementById("selectionInstruction");
 
-function timestamp() {
-  return Date.now();
-}
+// ---------- UTIL ----------
+
+const timestamp = () => Date.now();
+
+// ---------- LOAD ROUND ----------
 
 function loadRound() {
   const q = ORDERED_DATA[round];
   promptEl.textContent = q.prompt;
 
-  // Reset UI
+  // Reset UI state
   answersEl.classList.add("hidden");
   loadingEl.classList.add("hidden");
   nextBtn.classList.add("hidden");
@@ -38,7 +46,7 @@ function loadRound() {
   selectedModel = null;
   generateBtn.disabled = false;
 
-  // Populate answers and model names
+  // Populate answers + model names
   document.querySelectorAll(".answer-wrapper").forEach(wrapper => {
     const model = wrapper.dataset.model;
     const card = wrapper.querySelector(".answer-card");
@@ -60,6 +68,8 @@ function loadRound() {
   );
 }
 
+// ---------- SEND CHOICE ----------
+
 function sendChoiceToQualtrics(model) {
   window.parent.postMessage(
     {
@@ -72,6 +82,8 @@ function sendChoiceToQualtrics(model) {
     "*"
   );
 }
+
+// ---------- GENERATE RESPONSES ----------
 
 generateBtn.addEventListener("click", () => {
   generateBtn.disabled = true;
@@ -103,6 +115,8 @@ generateBtn.addEventListener("click", () => {
   }, 700);
 });
 
+// ---------- SELECT ANSWER ----------
+
 document.querySelectorAll(".answer-wrapper").forEach(wrapper => {
   wrapper.addEventListener("click", () => {
     const model = wrapper.dataset.model;
@@ -118,9 +132,12 @@ document.querySelectorAll(".answer-wrapper").forEach(wrapper => {
 
     setTimeout(() => {
       nextBtn.classList.remove("hidden");
+      nextBtn.scrollIntoView({ behavior: "smooth", block: "center" });
     }, NEXT_DELAY_MS);
   });
 });
+
+// ---------- NEXT QUESTION ----------
 
 nextBtn.addEventListener("click", () => {
   window.parent.postMessage(
@@ -153,6 +170,7 @@ nextBtn.addEventListener("click", () => {
   loadRound();
 });
 
-// Initialize
-console.log("Condition: NAMED MODELS, POLITICAL FIRST");
+// ---------- INIT ----------
+
+console.log("Condition: NAMED MODELS · POLITICAL FIRST");
 loadRound();
