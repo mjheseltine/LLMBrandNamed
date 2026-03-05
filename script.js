@@ -10,9 +10,9 @@ const MODEL_IDS = ["A", "B", "C", "D"];
 // VISIBLE model names (ONLY difference from unnamed version)
 const MODEL_NAMES = {
   A: "Gab AI",
-  B: "Grok",
-  C: "GPT",
-  D: "Claude"
+  B: "Grok xAI",
+  C: "GPT OpenAI",
+  D: "Claude Anthropic"
 };
 
 // Color classes stay EXACTLY the same
