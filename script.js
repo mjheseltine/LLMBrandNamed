@@ -144,7 +144,7 @@ nextBtn.addEventListener("click", () => {
     );
 
     document.getElementById("app").innerHTML =
-      "<h2>Thank you, you may now proceed to the next task.</h2>";
+      "<h2><h2>Thank you, you may now proceed to the next task.<br><br>Press advance below in Qualtrics.</h2>";
     return;
   }
 
